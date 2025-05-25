@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genetics Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .answer {
+            padding: 5px;            border-radius: 4px;
+            margin: 5px 0;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        #search-bar {
+            margin-bottom: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="file-input" accept="application/json">
+    <input type="text" id="search-bar" placeholder="Search questions or numbers...">
+    <div id="question-container"></div>
+
+    <script>
+        let questions = [];
+        let currentIndex = 0;
+
+        document.getElementById('file-input').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        questions = JSON.parse(e.target.result);
+                        displayQuestion(0);
+                    } catch (error) {
+                        alert('Invalid JSON file');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function displayQuestion(index) {
+            const container = document.getElementById('question-container');
+            container.innerHTML = '';
+            if (index < 0 || index >= questions.length) return;
+
+            const questionData = questions[index];
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+
+            const questionText = document.createElement('h3');
+            questionText.textContent = `${index + 1}. ${questionData.question}`;
+            questionDiv.appendChild(questionText);
+
+            questionData.answers.forEach(answer => {
+                const answerDiv = document.createElement('div');
+                answerDiv.textContent = answer.text;
+                answerDiv.classList.add('answer', answer.is_correct ? 'correct' : 'incorrect');
+                questionDiv.appendChild(answerDiv);
+            });
+
+            container.appendChild(questionDiv);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                currentIndex = (currentIndex + 1) % questions.length;
+                displayQuestion(currentIndex);
+            } else if (e.key === 'ArrowLeft') {
+                currentIndex = (currentIndex - 1 + questions.length) % questions.length;
+                displayQuestion(currentIndex);
+            }
+        });
+
+        document.getElementById('search-bar').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const container = document.getElementById('question-container');
+            container.innerHTML = '';
+            questions.forEach((question, index) => {
+                if (question.question.toLowerCase().includes(query) || (query === (index + 1).toString())) {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.classList.add('question');
+
+                    const questionText = document.createElement('h3');
+                    questionText.textContent = `${index + 1}. ${question.question}`;
+                    questionDiv.appendChild(questionText);
+
+                    question.answers.forEach(answer => {
+                        const answerDiv = document.createElement('div');
+                        answerDiv.textContent = answer.text;
+                        answerDiv.classList.add('answer', answer.is_correct ? 'correct' : 'incorrect');
+                        questionDiv.appendChild(answerDiv);
+                    });
+
+                    container.appendChild(questionDiv);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
